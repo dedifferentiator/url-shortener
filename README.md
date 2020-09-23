@@ -39,7 +39,7 @@
   According to the above, there's even no need in `short_url` field in the table, because it's easy to convert from the shortened url to base62, but it was decided to store the short link anyway, in case of switching base to another number, different from 62. Although afterwhile I realised that it shouldn't be difficult to start storing shortened links in case we'll want to move to another base, but before it there's no actual need. But it was too late and too close to deadline :)
 
 ## Possible optimizations
- - forbid some links which contains bad words in it
- - refill holes in ID sequence in db with new urls
+ - forbid some links which contain bad words in them
+ - refill holes in ID sequence in the db with the new urls
  - link-to-shorten size is not limited, but probably it should be
- - service tries to redirect even to invalid links, but probably it's worth to add link validator
+ - service tries to redirect even to invalid links, but probably it's worth to add a link validator
