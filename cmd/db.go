@@ -118,7 +118,7 @@ func (d *DB) InsertUrl(u Url) (string, error) {
 	// in 2-step transaction, having in mind situation
 	// when following INSERT query fails constantly
 	// for a really huge number of times and no records in db being made,
-	// but the value of id will be unproportianally enourmous
+	// but the value of id will be unproportianally enormous
 	// and probably this might be abused in some way
 	id := []int{}
 	err = tx.Select(&id, `SELECT nextval(

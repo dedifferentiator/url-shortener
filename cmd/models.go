@@ -27,7 +27,7 @@ func GetOrigUrl(shortUrl string, db *DB) (string, error) {
 	return url, nil
 }
 
-//idToShortUrl transformes id into url using base
+//idToShortUrl transforms id into url using base
 func idToShortUrl(id int) string {
 	digits := []int{}
 
