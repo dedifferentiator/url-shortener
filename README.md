@@ -37,3 +37,9 @@
   Shortening links is quite simple, having serial id - integer(implicitly unsigned), we convert it from base10 to base62 (length of the pull of symbols) and then translate it to the shortened link, using the converted number digits as indices of the symbols pull.
   
   According to the above, there's even no need in `short_url` field in the table, because it's easy to convert from the shortened url to base62, but it was decided to store the short link anyway, in case of switching base to another number, different from 62. Although afterwhile I realised that it shouldn't be difficult to start storing shortened links in case we'll want to move to another base, but before it there's no actual need. But it was too late and too close to deadline :)
+
+## Possible optimizations
+ - forbid some links which contains bad words in it
+ - refill holes in ID sequence in db with new urls
+ - link-to-shorten size is not limited, but probably it should be
+ - service tries to redirect even to invalid links, but probably it's worth to add link validator
