@@ -8,7 +8,7 @@ import (
 const schema = `
 CREATE TABLE IF NOT EXISTS urls (
 	id SERIAL,
-	short_url VARCHAR(32) UNIQUE NOT NULL,
+	short_url VARCHAR(32) PRIMARY KEY,
 	orig_url TEXT NOT NULL,
 	created_at TIMESTAMP NOT NULL
 );
@@ -21,7 +21,7 @@ type DB struct {
 	Conn   string
 }
 
-//MustOpenConn opens connection to database
+//OpenConn opens connection to database
 func (d *DB) OpenConn() (*sqlx.DB, error) {
 	db, err := sqlx.Connect(d.Driver, d.Conn)
 	if err != nil {
@@ -53,7 +53,7 @@ func (d *DB) AutoMigrate() error {
 	return nil
 }
 
-//Inserts reserved handlers' keywords into db
+//InsertReservedWords inserts reserved handlers' keywords into db
 func (d *DB) InsertReservedWords(urls []Url) error {
 	db, err := d.OpenConn()
 	if err != nil {
@@ -69,18 +69,16 @@ func (d *DB) InsertReservedWords(urls []Url) error {
 			return ShortUrlIsEmptyErr{}
 		}
 
-		// it would be great to implement this transaction with pl/pgSQL
-		// so the record will be added into db by one query
 		tx := d.DB.MustBegin()
 
 		_, err = tx.Exec(`INSERT INTO urls (
-						id, short_url, orig_url, created_at
-					  )
-					  VALUES (
-						nextval(
-							pg_get_serial_sequence('urls', 'id')
-						), $1, $2, now()
-					  ) ON CONFLICT DO NOTHING`,
+                            id, short_url, orig_url, created_at
+                          )
+                          VALUES (
+                            nextval(
+                              pg_get_serial_sequence('urls', 'id')
+                            ), $1, $2, now()
+                          ) ON CONFLICT DO NOTHING`,
 			u.ShortUrl, u.ShortUrl)
 		if err != nil {
 			_ = tx.Rollback()
@@ -96,7 +94,7 @@ func (d *DB) InsertReservedWords(urls []Url) error {
 	return nil
 }
 
-//InsertUrlDB inserts Url into db
+//InsertUrl inserts Url into db
 func (d *DB) InsertUrl(u Url) (string, error) {
 	db, err := d.OpenConn()
 	if err != nil {
@@ -124,8 +122,8 @@ func (d *DB) InsertUrl(u Url) (string, error) {
 	// and probably this might be abused in some way
 	id := []int{}
 	err = tx.Select(&id, `SELECT nextval(
-						       pg_get_serial_sequence('urls', 'id')
-						) AS id`)
+                            pg_get_serial_sequence('urls', 'id')
+                          ) AS id`)
 	if err != nil {
 		_ = tx.Rollback()
 		return "", err
@@ -134,11 +132,11 @@ func (d *DB) InsertUrl(u Url) (string, error) {
 	}
 
 	_, err = tx.Exec(`INSERT INTO urls (
-						id, short_url, orig_url, created_at
-					  )
-					  VALUES (
-						$1, $2, $3, now()
-					  )`, id[0], idToShortUrl(id[0]), u.OrigUrl)
+                        id, short_url, orig_url, created_at
+                      )
+                      VALUES (
+                        $1, $2, $3, now()
+                      )`, id[0], idToShortUrl(id[0]), u.OrigUrl)
 	if err != nil {
 		_ = tx.Rollback()
 		return "", err
@@ -147,7 +145,7 @@ func (d *DB) InsertUrl(u Url) (string, error) {
 	return idToShortUrl(id[0]), tx.Commit()
 }
 
-//GetReplyChat returns original chat_id by its forward_id
+//GetOrigUrl returns original url by its shortened url
 func (d *DB) GetOrigUrl(shortUrl string) (string, error) {
 	db, err := d.OpenConn()
 	if err != nil {
