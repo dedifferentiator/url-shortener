@@ -23,7 +23,7 @@ func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c 
 func (s *server) NewHandler(c echo.Context) error {
 	p, err := c.FormParams()
 	if err != nil {
-		return c.String(http.StatusOK,
+		return c.String(http.StatusInternalServerError,
 			"Something went wrong... Please, try again later!")
 	}
 
@@ -33,12 +33,12 @@ func (s *server) NewHandler(c echo.Context) error {
 
 	shortUrl, err := u.Create(s.db)
 	if err != nil {
-		return c.String(http.StatusOK,
+		return c.String(http.StatusInternalServerError,
 			"Something went wrong... Please, try again later!")
 	}
 
 	link := s.env.domain + "/" + shortUrl
-	return c.Render(http.StatusOK, "new", link)
+	return c.Render(http.StatusCreated, "new", link)
 }
 
 //RedirectHandler handles request with short urls

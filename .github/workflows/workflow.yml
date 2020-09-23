@@ -1,0 +1,64 @@
+name: Tests
+on: [push, pull_request]
+
+jobs:
+  go-test:
+    runs-on: ubuntu-latest
+    # looks like there is no support of go test in alpine version, so using 1.15.2 instead of 1.15.2-alpine3.12
+    container: golang:1.15.2
+    defaults:
+      run:
+        working-directory: cmd
+
+    services:
+      postgres:
+        image: postgres:12.3-alpine
+        env:
+          POSTGRES_USER: admin
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.15.2'
+
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - name: Cache go modules
+        uses: actions/cache@v2
+        with:
+          path: /go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: ${{ runner.os }}-go-
+
+      - name: Run tests
+        run: |
+          go test -race ./...
+        env:
+          # The name of driver for sql connector
+          SERV_DRIVER_DB: postgres
+          # The database connection string
+          SERV_CONN_DB: host=postgres port=5432 user=admin dbname=test password=test sslmode=disable
+          SERV_PORT: 1323
+
+  golangci:
+    name: lint
+    runs-on: ubuntu-latest
+    container: golang:1.15.2
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v1
+        with:
+          # Required: the version of golangci-lint is required and must be specified without patch version: we always use the latest patch version.
+          version: v1.29
+          working-directory: cmd

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"html/template"
 	"log"
 	"os"
 
@@ -27,6 +28,11 @@ func NewServer() *server {
 	s.initEnv()
 	s.mustInitDB()
 	s.mux = echo.New()
+
+	t := &TemplateRenderer{
+		templates: template.Must(template.ParseGlob("static/new.html")),
+	}
+	s.mux.Renderer = t
 
 	return &s
 }
